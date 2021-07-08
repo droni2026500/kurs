@@ -6,6 +6,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import { useHistory } from 'react-router-dom';
 import { auth } from '../../api/authorization';
 
 const useStyles = makeStyles((theme) => ({
@@ -22,14 +23,47 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  error: {
+    color: 'red',
+    fontSize: '14px',
+  },
 }));
 
 const Registration = () => {
+  const history = useHistory();
   const classes = useStyles();
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [responseError, setResponseError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validation = () => {
+    const errorFields = {};
+    if (userName === '') {
+      errorFields.userName = 'Обязательное поле';
+    }
+    if (password === '') {
+      errorFields.password = 'Обязательное поле';
+    }
+    setErrors(errorFields);
+
+    return Object.keys(errorFields).length === 0;
+  };
+
   const handleSubmit = async () => {
-    await auth.registration(userName, password);
+    try {
+      const isValid = validation();
+      if (isValid) {
+        setIsSubmitting(true);
+        await auth.registration(userName, password);
+        setIsSubmitting(false);
+        history.push('/');
+      }
+    } catch {
+      setIsSubmitting(false);
+      setResponseError('Такой пользователь уже существует');
+    }
   };
 
   return (
@@ -39,12 +73,11 @@ const Registration = () => {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Registration
+          Регистрация
         </Typography>
         <TextField
           variant="outlined"
           margin="normal"
-          required
           fullWidth
           id="email"
           label="Email Address"
@@ -52,11 +85,13 @@ const Registration = () => {
           autoComplete="email"
           autoFocus
           onChange={(e) => setUserName(e.target.value)}
+          disabled={isSubmitting}
+          error={errors && !!errors.userName}
+          helperText={errors.userName}
         />
         <TextField
           variant="outlined"
           margin="normal"
-          required
           fullWidth
           name="password"
           label="Password"
@@ -64,7 +99,11 @@ const Registration = () => {
           id="password"
           autoComplete="current-password"
           onChange={(e) => setPassword(e.target.value)}
+          disabled={isSubmitting}
+          error={errors && !!errors.password}
+          helperText={errors.password}
         />
+        <p className={classes.error}>{responseError}</p>
         <Button
           type="submit"
           fullWidth
@@ -72,8 +111,9 @@ const Registration = () => {
           color="primary"
           className={classes.submit}
           onClick={handleSubmit}
+          disabled={isSubmitting}
         >
-          Sign On
+          Регистрация
         </Button>
       </div>
     </Container>

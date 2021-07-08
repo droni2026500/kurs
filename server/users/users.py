@@ -1,70 +1,38 @@
 import os
 import flask
-import flask_sqlalchemy
+from flask_sqlalchemy import SQLAlchemy
 import flask_praetorian
 import flask_cors
 
-db = flask_sqlalchemy.SQLAlchemy()
-guard = flask_praetorian.Praetorian()
-cors = flask_cors.CORS()
+app = flask.Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@94.228.120.254:5435/users"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+app.debug = True
 
 
-# A generic user model that might be used by an app powered by flask-praetorian
 class User(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
     roles = db.Column(db.Text)
-    is_active = db.Column(db.Boolean, default=True, server_default='true')
 
-    @property
-    def rolenames(self):
-        try:
-            return self.roles.split(',')
-        except Exception:
-            return []
+    def __init__(self, username, password, roles):
+        self.username = username
+        self.password = password
+        self.roles = roles
 
-    @classmethod
-    def lookup(cls, username):
-        return cls.query.filter_by(username=username).one_or_none()
-
-    @classmethod
-    def identify(cls, id):
-        return cls.query.get(id)
-
-    @property
-    def identity(self):
-        return self.id
-
-    def is_valid(self):
-        return self.is_active
+    def __repr__(self):
+        return f""
 
 
-# Initialize flask app for the example
-app = flask.Flask(__name__)
-app.debug = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'top secret'
-app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
-app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
-
-# Initialize the flask-praetorian instance for the app
-guard.init_app(app, User)
-
-# Initialize a local database for the example
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.getcwd(), 'database.db')}"
-db.init_app(app)
-
-# Initializes CORS so that the api_tool can talk to the example app
-cors.init_app(app)
-
-# Add users for the example
 with app.app_context():
     db.create_all()
     if db.session.query(User).filter_by(username='admin').count() < 1:
         db.session.add(User(
           username='admin',
-          password=guard.hash_password('123'),
+          password='123',
           roles='admin'
             ))
     db.session.commit()
@@ -76,11 +44,13 @@ def login():
     req = flask.request.get_json(force=True)
     username = req.get('userName', None)
     password = req.get('password', None)
-    user = guard.authenticate(username, password)
-    #ret = {'access_token': guard.encode_jwt_token(user)}
-    #return user, 200
-    return "Успешная авторизация", 200
-
+    if db.session.query(User).filter_by(username=username).first():
+        if db.session.query(User).filter_by(password=password).first():
+            role1 = User.query.filter_by(username = username).first()
+            return role1.roles, 200
+        return "Неверный логин/пароль", 401
+    return "Неверный логин/пароль", 401
+    
 @app.route('/api/registration', methods=['POST'])
 def registration():
     req = flask.request.get_json(force=True)
@@ -88,13 +58,11 @@ def registration():
     password_user = req.get('password', None)
     with app.app_context():
         if db.session.query(User).filter_by(username=username_user).count() < 1:
-            db.session.add(User(
-                username=username_user,
-                password=guard.hash_password(password_user),
-                roles='admin'))
+            new_user = User(username=username_user,password=password_user,roles='users')
+            db.session.add(new_user)
+            db.session.commit()
         else:
             return "Такой пользователь уже есть", 401
-        db.session.commit()
     return "Успешная регистрация", 200
 
   

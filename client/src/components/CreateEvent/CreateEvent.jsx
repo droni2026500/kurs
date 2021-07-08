@@ -6,11 +6,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import MomentUtils from '@date-io/moment';
 import ImageUploader from 'react-images-upload';
+import { useHistory } from 'react-router-dom';
 import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
-import { events } from '../../api/events';
+import { eventsMethod } from '../../api/events';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -26,10 +27,25 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  responseError: {
+    color: '#f44336',
+    fontSize: '14px',
+  },
+  imageError: {
+    fontSize: '14px',
+    marginLeft: '14px',
+    marginRight: '14px',
+    color: '#f44336',
+    width: '100%',
+  },
 }));
 
 const CreateEvent = () => {
   const classes = useStyles();
+  const history = useHistory();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [responseError, setResponseError] = useState('');
   const [initialState, setInitialState] = useState({
     title: '',
     description: '',
@@ -38,8 +54,44 @@ const CreateEvent = () => {
     subway: '',
     image: '',
   });
+
+  const validation = () => {
+    const errorFields = {};
+    if (initialState.title === '') {
+      errorFields.title = 'Обязательное поле';
+    }
+    if (initialState.description === '') {
+      errorFields.description = 'Обязательное поле';
+    }
+    if (initialState.dateEvent === null) {
+      errorFields.dateEvent = 'Обязательное поле';
+    }
+    if (initialState.location === '') {
+      errorFields.location = 'Обязательное поле';
+    }
+    if (initialState.subway === '') {
+      errorFields.subway = 'Обязательное поле';
+    }
+    if (initialState.image === '') {
+      errorFields.image = 'Загрузите изображение';
+    }
+    setErrors(errorFields);
+
+    return Object.keys(errorFields).length === 0;
+  };
   const handleSubmit = async () => {
-    await events.createEvent(initialState);
+    try {
+      const isValid = validation();
+      if (isValid) {
+        setIsSubmitting(true);
+        await eventsMethod.createEvent(initialState);
+        setIsSubmitting(false);
+        history.push('/events');
+      }
+    } catch {
+      setIsSubmitting(false);
+      setResponseError('Не удалось создать событие');
+    }
   };
 
   const handleChange = (e) => {
@@ -67,11 +119,15 @@ const CreateEvent = () => {
           name="title"
           autoFocus
           onChange={handleChange}
+          disabled={isSubmitting}
+          error={errors && !!errors.title}
+          helperText={errors.title}
         />
         <TextField
           variant="outlined"
           margin="normal"
           fullWidth
+          required
           value={initialState.description}
           id="description"
           label="Описание"
@@ -79,17 +135,24 @@ const CreateEvent = () => {
           autoFocus
           multiline
           onChange={handleChange}
+          disabled={isSubmitting}
+          error={errors && !!errors.description}
+          helperText={errors.description}
         />
         <TextField
           variant="outlined"
           margin="normal"
           fullWidth
+          required
           id="location"
           value={initialState.location}
           label="Место проведения"
           name="location"
           autoFocus
           onChange={handleChange}
+          disabled={isSubmitting}
+          error={errors && !!errors.location}
+          helperText={errors.location}
         />
         <TextField
           variant="outlined"
@@ -98,15 +161,20 @@ const CreateEvent = () => {
           id="subway"
           value={initialState.subway}
           label="Метро"
+          required
           name="subway"
           autoFocus
           onChange={handleChange}
+          disabled={isSubmitting}
+          error={errors && !!errors.subway}
+          helperText={errors.subway}
         />
         <MuiPickersUtilsProvider utils={MomentUtils}>
           <KeyboardDatePicker
             disableToolbar
             variant="inline"
             format="DD.MM.YYYY"
+            required
             margin="normal"
             fullWidth
             name="date"
@@ -119,6 +187,9 @@ const CreateEvent = () => {
                 dateEvent: value,
               }));
             }}
+            disabled={isSubmitting}
+            error={errors && !!errors.dateEvent}
+            helperText={errors.dateEvent}
           />
         </MuiPickersUtilsProvider>
         <ImageUploader
@@ -137,7 +208,10 @@ const CreateEvent = () => {
           imgExtension={['.jpg', '.png']}
           maxFileSize={5242880}
           singleImage
+          disabled={isSubmitting}
         />
+        <p className={classes.imageError}>{errors.image}</p>
+        <p className={classes.responseError}>{responseError}</p>
         <Button
           type="submit"
           fullWidth
@@ -145,6 +219,7 @@ const CreateEvent = () => {
           color="primary"
           className={classes.submit}
           onClick={handleSubmit}
+          disabled={isSubmitting}
         >
           Создать мероприятие
         </Button>

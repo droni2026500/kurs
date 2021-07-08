@@ -2,6 +2,18 @@ version: '2.1'
 
 services:
 
+  swagger:
+    container_name: swagger
+    build:
+      context: ./swagger
+    ports:
+      - '8080:8080' # expose ports - HOST:CONTAINER
+    environment:
+      - API_URL=https://raw.githubusercontent.com/realpython/flask-microservices-swagger/master/swagger.json
+    depends_on:
+      users-service:
+        condition: service_started  
+
   web-service:
     container_name: web-service
     build:
@@ -44,7 +56,7 @@ services:
     volumes:
       - './server/users:/usr/src/app'
     ports:
-      - 5001:5000 # expose ports - HOST:CONTAINER
+      - 5000:5000 # expose ports - HOST:CONTAINER
     environment:
       - APP_SETTINGS=project.config.DevelopmentConfig
       - DATABASE_URL=postgres://postgres:postgres@users-db:5432/users
@@ -54,6 +66,38 @@ services:
         condition: service_healthy
     links:
       - users-db
+
+  events-db:
+    container_name: events-db
+    build:
+      context: ./server/events/db_events
+    ports:
+      - 5436:5432  # expose ports - HOST:CONTAINER
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: exit 0
+
+  events-service:
+    container_name: events-service
+    build:
+      context: ./server/events
+      dockerfile: Dockerfile-local
+    volumes:
+      - './server/events:/usr/src/app'
+    ports:
+      - 5001:5000 # expose ports - HOST:CONTAINER
+    environment:
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@events-db:5436/events
+      - SECRET_KEY=my_precious
+    depends_on:
+      users-db:
+        condition: service_healthy
+    links:
+      - events-db
+
 
   nginx:
     container_name: nginx
@@ -68,4 +112,5 @@ services:
         condition: service_started
     links:
       - users-service
+      - events-service
       - web-service
