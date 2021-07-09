@@ -117,7 +117,7 @@
     "User": {
       "type": "object",
       "required": [
-        "username",
+        "userName",
         "password"
       ],
       "properties": {
