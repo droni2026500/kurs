@@ -1,0 +1,125 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "0.0.1",
+    "title": "Users Service",
+    "description": "Swagger spec for documenting the users service"
+  },
+  "host": "94.228.120.254",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "paths": {
+    "/api/authorization": {
+      "post": {
+        "description": "Logs a user in",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "User to add",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешная авторизация"
+          },
+          "401": {
+            "description": "Не правильный логин или пароль"
+          }
+        }
+      }
+    },
+    "/api/registration": {
+      "post": {
+        "description": "Registration",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "userName": "user",
+            "password": "password"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешная регистрация"
+          },
+          "401": {
+            "description": "Такой пользователь уже существует"
+          }
+        }
+      }
+    },
+    "/api/createEvent": {
+      "post": {
+        "description": "Create event",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "title": "title",
+            "description": "description",
+            "dateEvent": null,
+            "location": "location",
+            "subway": "subway",
+            "image": "image"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Событие создано"
+          }
+        }
+      }
+    },
+    "/api/getEvents": {
+      "post": {
+        "description": "Get events",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "title": "title",
+            "description": "description",
+            "dateEvent": null,
+            "location": "location",
+            "subway": "subway",
+            "image": "image"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Событие создано"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "required": [
+        "username",
+        "password"
+      ]
+    }
+  }
+}
