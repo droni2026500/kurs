@@ -27,7 +27,7 @@
           {
             "name": "user",
             "in": "body",
-            "description": "User to add",
+            "description": "User check",
             "required": true,
             "schema": {
               "$ref": "#/definitions/User"
@@ -119,7 +119,7 @@
       "required": [
         "username",
         "password"
-      ]
+      ],
     }
   }
 }
