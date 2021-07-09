@@ -9,6 +9,12 @@
   "schemes": [
     "http"
   ],
+ "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
   },
   "paths": {
     "/api/authorization": {
@@ -21,11 +27,16 @@
           {
             "name": "user",
             "in": "body",
-            "description": "User check",
+            "description": "User to add",
             "required": true,
             "schema": {
               "$ref": "#/definitions/User"
             }
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "responses": {
