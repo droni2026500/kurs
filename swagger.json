@@ -17,107 +17,7 @@
     }
   },
   "paths": {
-    "/ping": {
-      "get": {
-        "description": "Returns a sanity check",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Will return 'pong!'"
-          }
-        }
-      }
-    },
-    "/users": {
-      "get": {
-        "description": "Returns all users",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "user object"
-          }
-        }
-      },
-      "post": {
-        "description": "Adds a new user",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "user",
-            "in": "body",
-            "description": "User to add",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User added"
-          }
-        }
-      }
-    },
-    "/users/{id}": {
-      "get": {
-        "description": "Returns a user based on a single user ID",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of user to fetch",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "user object"
-          }
-        }
-      }
-    },
-    "/auth/register": {
-      "post": {
-        "description": "Creates a new user",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "user",
-            "in": "body",
-            "description": "User to add",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Successfully registered"
-          }
-        }
-      }
-    },
-    "/auth/login": {
+    "/api/authorization": {
       "post": {
         "description": "Logs a user in",
         "produces": [
@@ -127,7 +27,7 @@
           {
             "name": "user",
             "in": "body",
-            "description": "User to log in",
+            "description": "User check",
             "required": true,
             "schema": {
               "$ref": "#/definitions/User"
@@ -136,43 +36,78 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully logged in"
+            "description": "Успешная авторизация"
+          },
+          "401": {
+            "description": "Не правильный логин или пароль"
           }
         }
       }
     },
-    "/auth/status": {
-      "get": {
-        "description": "Returns the logged in user's status",
+    "/api/registration": {
+      "post": {
+        "description": "Registration",
         "produces": [
           "application/json"
         ],
-        "security": [
+        "parameters": [
           {
-            "Bearer": []
+            "userName": "user",
+            "password": "password"
           }
         ],
         "responses": {
           "200": {
-            "description": "user object"
+            "description": "Успешная регистрация"
+          },
+          "401": {
+            "description": "Такой пользователь уже существует"
           }
         }
       }
     },
-    "/auth/logout": {
-      "get": {
-        "description": "Logs a user out",
+    "/api/createEvent": {
+      "post": {
+        "description": "Create event",
         "produces": [
           "application/json"
         ],
-        "security": [
+        "parameters": [
           {
-            "Bearer": []
+            "title": "title",
+            "description": "description",
+            "dateEvent": null,
+            "location": "location",
+            "subway": "subway",
+            "image": "image"
           }
         ],
         "responses": {
           "200": {
-            "description": "Successfully logged out"
+            "description": "Событие создано"
+          }
+        }
+      }
+    },
+    "/api/getEvents": {
+      "post": {
+        "description": "Get events",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "title": "title",
+            "description": "description",
+            "dateEvent": null,
+            "location": "location",
+            "subway": "subway",
+            "image": "image"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Событие создано"
           }
         }
       }
@@ -182,15 +117,11 @@
     "User": {
       "type": "object",
       "required": [
-        "username",
-        "email",
+        "userName",
         "password"
       ],
       "properties": {
         "username": {
-          "type": "string"
-        },
-        "email": {
           "type": "string"
         },
         "password": {
