@@ -118,6 +118,7 @@
       "type": "object",
       "required": [
         "userName",
+        "FSAFAS",
         "password"
       ],
       "properties": {
